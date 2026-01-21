@@ -14,7 +14,7 @@ Ce template vous permet de construire une application web complète avec authent
 - **Architecture** : Stateless (pas de session serveur)
 - **Stockage** : JWT dans `localStorage` du navigateur
 
-**Votre objectif** : Compléter les **17 TODOs** pour créer un système d'authentification JWT fonctionnel.
+**Votre objectif** : Compléter les **18 TODOs** pour créer un système d'authentification JWT fonctionnel.
 
 ---
 
@@ -45,11 +45,11 @@ Ce template vous permet de construire une application web complète avec authent
 jwt-demo-template/
 ├── backend/
 │   ├── models/
-│   │   └── User.js              # TODO 3, 4
+│   │   └── User.js              # TODO 3, 4, 5, 6, 7
 │   ├── middleware/
-│   │   └── auth.js              # TODO 5
+│   │   └── auth.js              # TODO 8
 │   ├── routes/
-│   │   └── auth.js              # TODO 6, 7, 8
+│   │   └── auth.js              # TODO 9, 10, 11
 │   ├── .env                     # Configuration (FOURNI)
 │   ├── server.js                # TODO 1, 2
 │   └── package.json             # Dépendances (FOURNI)
@@ -57,13 +57,13 @@ jwt-demo-template/
 └── frontend/
     ├── src/
     │   ├── views/
-    │   │   ├── Register.vue     # TODO 13
-    │   │   ├── Login.vue        # TODO 14
-    │   │   └── Home.vue         # TODO 15, 16, 17
+    │   │   ├── Register.vue     # TODO 15
+    │   │   ├── Login.vue        # TODO 16
+    │   │   └── Home.vue         # TODO 17, 18
     │   ├── services/
-    │   │   └── api.js           # TODO 9, 10, 11
+    │   │   └── api.js           # TODO 12, 13, 14
     │   ├── router/
-    │   │   └── index.js         # TODO 12
+    │   │   └── index.js         # TODO 14
     │   ├── App.vue              # Racine (FOURNI)
     │   ├── main.js              # Point d'entrée (FOURNI)
     │   └── style.css            # CSS (FOURNI)
@@ -76,7 +76,7 @@ jwt-demo-template/
 
 ## 🎯 Liste des TODOs
 
-### 📦 Backend (8 TODOs)
+### 📦 Backend (11 TODOs)
 
 #### **Fichier: `backend/server.js`**
 
@@ -85,66 +85,76 @@ jwt-demo-template/
   - Activer `credentials: true`
 
 - **TODO 2** : Connexion MongoDB
-  - Utiliser `mongoose.connect()` avec `process.env.MONGODB_URI`
-  - Afficher un message de succès ou d'erreur
+  - Créer un client avec `new MongoClient(process.env.MONGODB_URI)`
+  - Se connecter avec `client.connect()`
+  - Stocker la référence dans `app.locals.db = client.db()`
 
 #### **Fichier: `backend/models/User.js`**
 
-- **TODO 3** : Hook pre-save pour hacher le password
-  - Implémenter `userSchema.pre('save', ...)`
-  - Utiliser `bcrypt.genSalt(10)` et `bcrypt.hash()`
-  - Hacher uniquement si le password a été modifié (`this.isModified('password')`)
+- **TODO 3** : Fonction `createUser(db, { email, password, name })`
+  - Hacher le password avec `bcrypt.genSalt()` et `bcrypt.hash()`
+  - Insérer dans la collection 'users' avec `insertOne()`
+  - Retourner l'utilisateur créé (avec `_id`)
 
-- **TODO 4** : Méthode `comparePassword`
-  - Créer `userSchema.methods.comparePassword`
-  - Utiliser `bcrypt.compare()` pour comparer password en clair avec hash
+- **TODO 4** : Fonction `findUserByEmail(db, email)`
+  - Utiliser `db.collection('users').findOne({ email })`
+
+- **TODO 5** : Fonction `findUserById(db, userId)`
+  - Utiliser `db.collection('users').findOne({ _id: new ObjectId(userId) })`
+
+- **TODO 6** : Fonction `comparePassword(plainPassword, hashedPassword)`
+  - Utiliser `bcrypt.compare()` pour comparer
+
+- **TODO 7** : Fonction `userWithoutPassword(user)`
+  - Retourner une copie de l'objet user sans la propriété password
 
 #### **Fichier: `backend/middleware/auth.js`**
 
-- **TODO 5** : Middleware `authenticateToken`
+- **TODO 8** : Middleware `authenticateToken`
   - Extraire le token du header `Authorization` (format: `Bearer TOKEN`)
   - Vérifier et décoder avec `jwt.verify(token, process.env.JWT_SECRET)`
-  - Récupérer l'utilisateur depuis MongoDB avec `User.findById()`
-  - Ajouter l'utilisateur à `req.user`
+  - Récupérer l'utilisateur avec `findUserById(req.app.locals.db, userId)`
+  - Exclure le password avec `userWithoutPassword()`
+  - Ajouter à `req.user` et appeler `next()`
   - Gérer les erreurs : `TokenExpiredError` (401), `JsonWebTokenError` (403)
 
 #### **Fichier: `backend/routes/auth.js`**
 
-- **TODO 6** : Route `POST /register`
-  - Extraire `email`, `password`, `name` du `req.body`
+- **TODO 9** : Route `POST /register`
+  - Récupérer `db` depuis `req.app.locals.db`
   - Valider les champs requis
-  - Vérifier que l'email n'existe pas déjà (`User.findOne({ email })`)
-  - Créer l'utilisateur (`new User()` + `save()`)
+  - Vérifier que l'email n'existe pas avec `findUserByEmail(db, email)`
+  - Créer l'utilisateur avec `createUser(db, { email, password, name })`
   - Générer un token JWT avec `generateToken(user._id)`
   - Retourner le token et l'utilisateur (sans password)
 
-- **TODO 7** : Route `POST /login`
-  - Extraire `email` et `password`
-  - Trouver l'utilisateur (`User.findOne({ email })`)
-  - Comparer le password avec `user.comparePassword(password)`
+- **TODO 10** : Route `POST /login`
+  - Récupérer `db` depuis `req.app.locals.db`
+  - Trouver l'utilisateur avec `findUserByEmail(db, email)`
+  - Comparer le password avec `comparePassword(password, user.password)`
   - Si valide, générer un token JWT
-  - Retourner le token et l'utilisateur
+  - Retourner le token et l'utilisateur (sans password)
 
-- **TODO 8** : Route `GET /profile` (protégée)
+- **TODO 11** : Route `GET /profile` (protégée)
   - Utiliser le middleware `authenticateToken`
   - Retourner `req.user` (ajouté par le middleware)
 
 ---
 
-### 🎨 Frontend (9 TODOs)
+### 🎨 Frontend (7 TODOs)
 
 #### **Fichier: `frontend/src/services/api.js`**
 
-- **TODO 9** : Intercepteur de requête Axios
+- **TODO 12** : Intercepteur de requête Axios
   - Récupérer le token de `localStorage.getItem('accessToken')`
   - Si le token existe, l'ajouter au header : `config.headers.Authorization = 'Bearer ' + token`
 
-- **TODO 10** : Intercepteur de réponse Axios
+- **TODO 13** : Intercepteur de réponse Axios
   - Détecter les erreurs 401 (`error.response?.status === 401`)
   - Supprimer `accessToken` et `user` de localStorage
   - Rediriger vers `/login` avec `window.location.href`
 
-- **TODO 11** : Service `authService`
+- **TODO 14** : Service `authService`
   - **`register(userData)`** : Appeler `POST /auth/register`, sauvegarder token et user
   - **`login(credentials)`** : Appeler `POST /auth/login`, sauvegarder token et user
   - **`logout()`** : Supprimer token et user de localStorage
@@ -154,7 +164,7 @@ jwt-demo-template/
 
 #### **Fichier: `frontend/src/router/index.js`**
 
-- **TODO 12** : Navigation Guard
+- **TODO 15** : Navigation Guard
   - Implémenter `router.beforeEach((to, from, next) => { ... })`
   - Si route nécessite auth (`requiresAuth`) ET non connecté → rediriger `/login`
   - Si route nécessite guest (`requiresGuest`) ET connecté → rediriger `/home`
@@ -162,32 +172,24 @@ jwt-demo-template/
 
 #### **Fichier: `frontend/src/views/Register.vue`**
 
-- **TODO 13** : Méthode `handleRegister`
+- **TODO 16** : Méthode `handleRegister`
   - Appeler `authService.register(this.form)`
   - En cas de succès : afficher message et rediriger vers `/home`
   - En cas d'erreur : afficher le message d'erreur
 
 #### **Fichier: `frontend/src/views/Login.vue`**
 
-- **TODO 14** : Méthode `handleLogin`
+- **TODO 17** : Méthode `handleLogin`
   - Appeler `authService.login(this.form)`
   - En cas de succès : afficher message et rediriger vers `/home`
   - En cas d'erreur : afficher le message d'erreur
 
 #### **Fichier: `frontend/src/views/Home.vue`**
 
-- **TODO 15** : Hook `mounted()`
-  - Récupérer l'utilisateur actuel avec `authService.getCurrentUser()`
-  - Appeler `fetchProfile()`
-
-- **TODO 16** : Méthode `fetchProfile`
-  - Appeler `authService.getProfile()`
-  - Stocker la réponse dans `this.profile`
-  - Gérer les erreurs
-
-- **TODO 17** : Méthode `handleLogout`
-  - Appeler `authService.logout()`
-  - Rediriger vers `/login` avec `this.$router.push('/login')`
+- **TODO 18** : Hook `mounted()` + Méthodes
+  - **`mounted()`** : Récupérer l'utilisateur actuel et appeler `fetchProfile()`
+  - **`fetchProfile()`** : Appeler `authService.getProfile()` et stocker dans `this.profile`
+  - **`handleLogout()`** : Appeler `authService.logout()` et rediriger vers `/login`
 
 ---
 
@@ -352,7 +354,7 @@ curl -X GET http://localhost:3000/api/auth/profile \
 ### Documentation officielle
 
 - [Express.js](https://expressjs.com/)
-- [Mongoose](https://mongoosejs.com/)
+- [MongoDB Node.js Driver](https://www.mongodb.com/docs/drivers/node/current/)
 - [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
 - [Vue.js 3](https://vuejs.org/)

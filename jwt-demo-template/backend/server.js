@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
@@ -25,11 +25,17 @@ app.use(express.json());
 // ============================================
 // TODO 2: Connexion MongoDB
 // ============================================
-// Connecter MongoDB avec mongoose.connect()
-// Afficher un message de succès ou d'erreur
-// mongoose.connect(...)
-//   .then(...)
-//   .catch(...);
+// Créer un client MongoDB et se connecter
+// Stocker la référence de la base de données dans app.locals.db pour la rendre accessible
+//
+// const client = new MongoClient(process.env.MONGODB_URI);
+//
+// client.connect()
+//   .then(() => {
+//     console.log('✅ MongoDB connecté');
+//     app.locals.db = client.db();
+//   })
+//   .catch(err => console.error('❌ Erreur MongoDB:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);

@@ -1,70 +1,81 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: [true, 'Email requis'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^\S+@\S+\.\S+$/, 'Email invalide']
-  },
-  password: {
-    type: String,
-    required: [true, 'Mot de passe requis'],
-    minlength: [6, 'Mot de passe trop court (min 6 caractères)']
-  },
-  name: {
-    type: String,
-    required: [true, 'Nom requis'],
-    trim: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+const { ObjectId } = require('mongodb');
 
 // ============================================
-// TODO 3: Hook pre-save pour hacher le password
+// TODO 3: Fonction pour créer un utilisateur
 // ============================================
-// Implémenter le hook Mongoose pre('save') pour hacher automatiquement
-// le mot de passe avant de sauvegarder en base
+// Créer une fonction pour insérer un utilisateur dans MongoDB
+// AVANT l'insertion, hacher le password avec bcrypt
 //
-// Indications:
-// - Utiliser this.isModified('password') pour vérifier si le password a changé
-// - Utiliser bcrypt.genSalt(10) pour générer un salt
-// - Utiliser bcrypt.hash(password, salt) pour hacher
-// - Assigner le hash à this.password
+// Étapes:
+// 1. Valider les données (email, password, name)
+// 2. Générer un salt avec bcrypt.genSalt(10)
+// 3. Hacher le password avec bcrypt.hash(password, salt)
+// 4. Insérer dans la collection 'users' avec insertOne()
+// 5. Retourner l'utilisateur créé (avec _id)
 //
-// userSchema.pre('save', async function(next) {
-//   if (!this.isModified('password')) return next();
-//   try {
-//     // ... votre code ici
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+// async function createUser(db, { email, password, name }) {
+//   // TODO: Valider que email, password et name existent
+//
+//   // TODO: Hacher le password
+//   // const salt = await bcrypt.genSalt(10);
+//   // const hashedPassword = await bcrypt.hash(password, salt);
+//
+//   // TODO: Insérer dans MongoDB
+//   // const result = await db.collection('users').insertOne({
+//   //   email: email.toLowerCase().trim(),
+//   //   password: hashedPassword,
+//   //   name: name.trim(),
+//   //   createdAt: new Date()
+//   // });
+//
+//   // TODO: Retourner l'utilisateur créé
+//   // return { _id: result.insertedId, email, name, createdAt: new Date() };
+// }
 
 // ============================================
-// TODO 4: Méthode comparePassword
+// TODO 4: Fonction pour trouver un utilisateur
 // ============================================
-// Créer une méthode d'instance pour comparer un mot de passe en clair
-// avec le hash stocké en base
+// Créer une fonction pour trouver un utilisateur par email
 //
-// Indice: utiliser bcrypt.compare(candidatePassword, this.password)
-//
-// userSchema.methods.comparePassword = async function(candidatePassword) {
-//   // ... votre code ici
-// };
+// async function findUserByEmail(db, email) {
+//   // TODO: Utiliser db.collection('users').findOne({ email: ... })
+// }
 
-// Méthode pour retourner l'objet sans le password (FOURNIE)
-userSchema.methods.toJSON = function() {
-  const obj = this.toObject();
-  delete obj.password;
-  delete obj.__v;
-  return obj;
+// ============================================
+// TODO 5: Fonction pour trouver par ID
+// ============================================
+// Créer une fonction pour trouver un utilisateur par _id
+//
+// async function findUserById(db, userId) {
+//   // TODO: Utiliser db.collection('users').findOne({ _id: new ObjectId(userId) })
+// }
+
+// ============================================
+// TODO 6: Fonction comparePassword
+// ============================================
+// Créer une fonction pour comparer un password en clair avec un hash
+//
+// async function comparePassword(plainPassword, hashedPassword) {
+//   // TODO: Utiliser bcrypt.compare(plainPassword, hashedPassword)
+// }
+
+// ============================================
+// TODO 7: Fonction pour retourner user sans password
+// ============================================
+// Créer une fonction utilitaire pour exclure le password d'un objet user
+//
+// function userWithoutPassword(user) {
+//   // TODO: Créer une copie de user et supprimer la propriété password
+//   // const { password, ...userWithoutPass } = user;
+//   // return userWithoutPass;
+// }
+
+module.exports = {
+  // À décommenter après implémentation:
+  // createUser,
+  // findUserByEmail,
+  // findUserById,
+  // comparePassword,
+  // userWithoutPassword
 };
-
-module.exports = mongoose.model('User', userSchema);
