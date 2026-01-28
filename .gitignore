@@ -1,19 +1,24 @@
-# Ignorer tout sauf tp-labs, exemples-presentation et jwt-demo-template
+# Ignorer tout sauf tp-labs, exemples-presentation, jwt-demo-template et oauth-jwt-demo-template
 /*
 !/tp-labs/
 !/exemples-presentation/
 !/jwt-demo-template/
+!/oauth-jwt-demo-template/
 !.gitignore
 !README.md
 
-# Cacher jwt-demo (solution complète - référence enseignant)
+# Cacher solutions complètes (référence enseignant uniquement)
 jwt-demo/
+oauth-jwt-demo/
 
 # Node modules
 tp-labs/*/node_modules/
 jwt-demo-template/backend/node_modules/
 jwt-demo-template/frontend/node_modules/
 jwt-demo-template/frontend/dist/
+oauth-jwt-demo-template/backend/node_modules/
+oauth-jwt-demo-template/frontend/node_modules/
+oauth-jwt-demo-template/frontend/dist/
 
 # EXCEPTION ÉDUCATIVE : Les fichiers .env sont normalement dans .gitignore
 # Ici, ils sont inclus uniquement pour faciliter les TPs et la démo (secrets factices)
@@ -39,7 +44,6 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
-
 # IDE
 .vscode/
 .idea/
@@ -49,3 +53,4 @@ Thumbs.db
 passport-local-demo
 express-passport-jwt-cookies
 EasyNodeJSTutorialFromScratch
+dPyuHr29ctwcWboa6URwiH.txt
