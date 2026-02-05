@@ -1,19 +1,19 @@
-require('dotenv').config();
-const express = require('express');
-const { MongoClient } = require('mongodb');
-const cors = require('cors');
-const passport = require('./config/passport');
+require("dotenv").config();
+const express = require("express");
+const { MongoClient } = require("mongodb");
+const cors = require("cors");
+const passport = require("./config/passport");
 
-const authRoutes = require('./routes/auth');
+const authRoutes = require("./routes/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Configuration CORS pour Vue.js
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -26,35 +26,36 @@ app.use(passport.initialize());
 // Connexion MongoDB avec driver natif
 const client = new MongoClient(process.env.MONGODB_URI);
 
-client.connect()
+client
+  .connect()
   .then(() => {
-    console.log('✅ MongoDB connecté');
+    console.log("✅ MongoDB connecté");
     // Stocker la référence db dans app.locals pour les routes
     app.locals.db = client.db();
   })
-  .catch(err => {
-    console.error('❌ Erreur MongoDB:', err);
+  .catch((err) => {
+    console.error("❌ Erreur MongoDB:", err);
     process.exit(1);
   });
 
 // Routes
-app.use('/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
 // Route de test
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
-    message: '🎓 OAuth + JWT Demo - Backend Express + MongoDB',
+    message: "🎓 OAuth + JWT Demo - Backend Express + MongoDB",
     endpoints: {
-      'POST /auth/register': 'Créer un compte (email/password)',
-      'POST /auth/login': 'Se connecter (email/password)',
-      'GET /auth/google': 'Se connecter avec Google',
-      'GET /auth/google/callback': 'Callback Google OAuth',
-      'GET /auth/profile': 'Profil (protégé par JWT)',
-      'GET /auth/users': 'Liste utilisateurs (debug)'
+      "POST /auth/register": "Créer un compte (email/password)",
+      "POST /auth/login": "Se connecter (email/password)",
+      "GET /auth/google": "Se connecter avec Google",
+      "GET /auth/google/callback": "Callback Google OAuth",
+      "GET /auth/profile": "Profil (protégé par JWT)",
+      "GET /auth/users": "Liste utilisateurs (debug)",
     },
-    database: 'MongoDB Native Driver',
-    authentication: 'JWT stateless + Google OAuth 2.0',
-    cors: 'Configuré pour Vue.js'
+    database: "MongoDB Native Driver",
+    authentication: "JWT stateless + Google OAuth 2.0",
+    cors: "Configuré pour Vue.js",
   });
 });
 
@@ -65,8 +66,8 @@ app.listen(PORT, () => {
 });
 
 // Fermer MongoDB à l'arrêt
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await client.close();
-  console.log('MongoDB déconnecté');
+  console.log("MongoDB déconnecté");
   process.exit(0);
 });

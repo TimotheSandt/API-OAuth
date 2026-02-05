@@ -1,6 +1,6 @@
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { findUserByGoogleId, createUserFromGoogle } = require('../models/User');
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const { findUserByGoogleId, createUserFromGoogle } = require("../models/User");
 
 // =============================================================================
 // TODO 1: Configuration de la stratégie Google OAuth 2.0
@@ -27,8 +27,44 @@ const { findUserByGoogleId, createUserFromGoogle } = require('../models/User');
 // Documentation : https://www.passportjs.org/packages/passport-google-oauth20/
 // =============================================================================
 
-// TODO 1: Votre code ici
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      passReqToCallback: true,
+    },
+    async (req, accessToken, refreshToken, profile, done) => {
+      try {
+        const db = req.app.locals.db;
 
+        // 1. Chercher l'utilisateur par googleId
+        let user = await findUserByGoogleId(db, profile.id);
+
+        // 2. Si l'utilisateur n'existe pas, le créer
+        if (!user) {
+          // Logique optionnelle : vérifier si l'email existe déjà comme compte classique
+          // Pour ce TP, on crée simplement un nouveau compte Google
+          user = await createUserFromGoogle(db, {
+            googleId: profile.id,
+            email: profile.emails[0].value,
+            name: profile.displayName,
+            picture:
+              profile.photos && profile.photos[0]
+                ? profile.photos[0].value
+                : null,
+          });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        console.error("Erreur Google Strategy:", error);
+        return done(error, null);
+      }
+    },
+  ),
+);
 
 // ⚠️ PAS de serializeUser/deserializeUser car on utilise JWT (stateless)
 // Ces fonctions sont uniquement pour les sessions

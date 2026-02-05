@@ -109,6 +109,7 @@ export default {
     },
     signInWithGoogle() {
       // Redirection vers le backend qui initie OAuth
+      // VITE_API_URL vaut maintenant http://localhost:3000/api
       window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`
     }
   }

@@ -1,0 +1,11 @@
+.env
+```ignore
+node_modules/
+dist/
+build/
+.DS_Store
+*.log
+.vscode/
+.idea/
+coverage/
+```

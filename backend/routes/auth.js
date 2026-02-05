@@ -1,22 +1,25 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const passport = require('../config/passport');
-const { findUserByEmail, findUserById, createUser, comparePassword } = require('../models/User');
-const { authenticateToken } = require('../middleware/auth');
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const passport = require("../config/passport");
+const {
+  findUserByEmail,
+  findUserById,
+  createUser,
+  comparePassword,
+} = require("../models/User");
+const { authenticateToken } = require("../middleware/auth");
 
 const router = express.Router();
 
 // Fonction pour générer un JWT
 const generateToken = (userId) => {
-  return jwt.sign(
-    { userId: userId.toString() },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
-  );
+  return jwt.sign({ userId: userId.toString() }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+  });
 };
 
 // POST /auth/register - Inscription
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
     const { email, password, name } = req.body;
     const db = req.app.locals.db;
@@ -24,16 +27,16 @@ router.post('/register', async (req, res) => {
     // Validation
     if (!email || !password || !name) {
       return res.status(400).json({
-        error: 'Données manquantes',
-        message: 'Email, mot de passe et nom sont requis'
+        error: "Données manquantes",
+        message: "Email, mot de passe et nom sont requis",
       });
     }
 
     // Validation password
     if (password.length < 6) {
       return res.status(400).json({
-        error: 'Mot de passe invalide',
-        message: 'Le mot de passe doit contenir au moins 6 caractères'
+        error: "Mot de passe invalide",
+        message: "Le mot de passe doit contenir au moins 6 caractères",
       });
     }
 
@@ -41,8 +44,8 @@ router.post('/register', async (req, res) => {
     const existingUser = await findUserByEmail(db, email);
     if (existingUser) {
       return res.status(409).json({
-        error: 'Email déjà utilisé',
-        message: 'Un compte existe déjà avec cet email'
+        error: "Email déjà utilisé",
+        message: "Un compte existe déjà avec cet email",
       });
     }
 
@@ -53,27 +56,27 @@ router.post('/register', async (req, res) => {
     const token = generateToken(user._id);
 
     res.status(201).json({
-      message: 'Compte créé avec succès',
+      message: "Compte créé avec succès",
       user: {
         _id: user._id,
         email: user.email,
         name: user.name,
-        provider: user.provider
+        provider: user.provider,
       },
       token,
-      expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     });
   } catch (error) {
-    console.error('Erreur inscription:', error);
+    console.error("Erreur inscription:", error);
     res.status(500).json({
-      error: 'Erreur serveur',
-      message: error.message
+      error: "Erreur serveur",
+      message: error.message,
     });
   }
 });
 
 // POST /auth/login - Connexion
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const db = req.app.locals.db;
@@ -81,8 +84,8 @@ router.post('/login', async (req, res) => {
     // Validation
     if (!email || !password) {
       return res.status(400).json({
-        error: 'Données manquantes',
-        message: 'Email et mot de passe requis'
+        error: "Données manquantes",
+        message: "Email et mot de passe requis",
       });
     }
 
@@ -90,8 +93,8 @@ router.post('/login', async (req, res) => {
     const user = await findUserByEmail(db, email);
     if (!user) {
       return res.status(401).json({
-        error: 'Identifiants invalides',
-        message: 'Email ou mot de passe incorrect'
+        error: "Identifiants invalides",
+        message: "Email ou mot de passe incorrect",
       });
     }
 
@@ -99,8 +102,8 @@ router.post('/login', async (req, res) => {
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
-        error: 'Identifiants invalides',
-        message: 'Email ou mot de passe incorrect'
+        error: "Identifiants invalides",
+        message: "Email ou mot de passe incorrect",
       });
     }
 
@@ -108,54 +111,54 @@ router.post('/login', async (req, res) => {
     const token = generateToken(user._id);
 
     res.json({
-      message: 'Connexion réussie',
+      message: "Connexion réussie",
       user: {
         _id: user._id,
         email: user.email,
         name: user.name,
         provider: user.provider,
-        picture: user.picture
+        picture: user.picture,
       },
       token,
-      expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     });
   } catch (error) {
-    console.error('Erreur login:', error);
+    console.error("Erreur login:", error);
     res.status(500).json({
-      error: 'Erreur serveur',
-      message: error.message
+      error: "Erreur serveur",
+      message: error.message,
     });
   }
 });
 
 // GET /api/auth/profile - Profil utilisateur (protégé)
-router.get('/profile', authenticateToken, async (req, res) => {
+router.get("/profile", authenticateToken, async (req, res) => {
   try {
     res.json({
-      message: 'Profil utilisateur',
-      user: req.user
+      message: "Profil utilisateur",
+      user: req.user,
     });
   } catch (error) {
     res.status(500).json({
-      error: 'Erreur serveur',
-      message: error.message
+      error: "Erreur serveur",
+      message: error.message,
     });
   }
 });
 
 // GET /api/auth/users - Liste des utilisateurs (debug)
-router.get('/users', async (req, res) => {
+router.get("/users", async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find().select("-password");
     res.json({
-      message: 'Liste des utilisateurs',
+      message: "Liste des utilisateurs",
       count: users.length,
-      users
+      users,
     });
   } catch (error) {
     res.status(500).json({
-      error: 'Erreur serveur',
-      message: error.message
+      error: "Erreur serveur",
+      message: error.message,
     });
   }
 });
@@ -183,7 +186,37 @@ router.get('/users', async (req, res) => {
 // Documentation Passport : https://www.passportjs.org/concepts/authentication/oauth/
 // =============================================================================
 
-// TODO 2: Votre code ici
+// 1. Initialisation de l'auth Google
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+    prompt: "select_account", // Force la sélection du compte à chaque fois
+  }),
+);
 
+// 2. Callback de retour de Google
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`,
+  }),
+  (req, res) => {
+    try {
+      // Authentification réussie, req.user contient l'utilisateur
+      const token = generateToken(req.user._id);
+
+      // Redirection vers le frontend avec le token
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    } catch (error) {
+      console.error("Erreur génération token OAuth:", error);
+      res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=token_generation_failed`,
+      );
+    }
+  },
+);
 
 module.exports = router;
